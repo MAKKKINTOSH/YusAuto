@@ -1,0 +1,42 @@
+services:
+  postgres:
+    container_name: "yus_auto_database"
+    image: postgres:16
+    env_file:
+      - ./.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/pgsql/data
+      - ./postgres_init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: "yus_auto_pgadmin"
+    image: dpage/pgadmin4
+    env_file:
+      - ./.env
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin_servers.json:/pgadmin4/servers.json
+    restart: unless-stopped
+
+  api:
+    container_name: "yus_auto_api"
+    build:
+      context: ./backend
+    env_file:
+      - ./.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - /backend/src/:/app/src/
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
