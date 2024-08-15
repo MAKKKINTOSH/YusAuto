@@ -1,23 +1,24 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
-
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-
-RUN apt-get update &&\
-    apt-get install -y --no-install-recomends\
-    curl &&\
-    apt-get clean
+FROM python:3.11
 
 WORKDIR /app
 
-RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PYTHONUNBUFFERED=1\
+PYTHONDONTWRITEBYTECODE=1\
+POETRY_VIRTUALENVS_CREATE=false
 
-COPY ./poetry.lock ./pyproject.toml /app/
+RUN apt-get update &&\
+    apt-get install -y --no-install-recommends\
+    curl &&\
+    apt-get clean
+
+run pip install --upgrade pip && pip install poetry
+
+COPY ./poetry.lock ./pyproject.toml ./
 
 RUN poetry install --no-root
 
-WORKDIR /app/src
+COPY . .
 
-COPY --exclude="./venv" ./src ./
+WORKDIR /app/app
 
 EXPOSE 8000

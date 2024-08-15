@@ -10,6 +10,13 @@ services:
       - postgres_data:/var/lib/pgsql/data
       - ./postgres_init:/docker-entrypoint-initdb.d
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 3s
+      timeout: 4s
+      retries: 10
+      start_period: 10s
+
 
   pgadmin:
     container_name: "yus_auto_pgadmin"
@@ -22,6 +29,9 @@ services:
       - pgadmin_data:/var/lib/pgadmin
       - ./pgadmin_servers.json:/pgadmin4/servers.json
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   api:
     container_name: "yus_auto_api"
@@ -31,9 +41,20 @@ services:
       - ./.env
     ports:
       - "8000:8000"
+    command: poetry run fastapi dev main.py --host 0.0.0.0 --port 8000
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
-      - /backend/src/:/app/src/
+      - ./backend/app:/app/app
+    healthcheck:
+      test: [ "CMD-SHELL", "curl localhost:8000/docs" ]
+      start_period: 10s
+      interval: 3s
+      timeout: 4s
+      retries: 10
     restart: unless-stopped
+
 
 volumes:
   postgres_data:
