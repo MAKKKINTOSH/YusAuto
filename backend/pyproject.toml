@@ -10,8 +10,10 @@ python = "^3.11"
 sqlalchemy = "^2.0.32"
 alembic = "^1.13.2"
 psycopg = "^3.2.1"
-fastapi = {extras = ["standart"], version = "^0.112.0"}
+fastapi = "^0.112.0"
 fastapi-cli = "^0.0.5"
+minio = "^7.2.8"
+python-dotenv = "^1.0.1"
 
 
 [build-system]

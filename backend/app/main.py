@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from orm import engine
+from object_vault import vault
+
 
 app = FastAPI()
 
