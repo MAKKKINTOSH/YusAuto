@@ -1,6 +1,8 @@
 services:
   postgres:
-    container_name: "yus_auto_database"
+    container_name: "yusauto_database"
+    networks:
+      - yusauto_backend_network
     image: postgres:16
     env_file:
       - ./.env
@@ -17,9 +19,10 @@ services:
       retries: 10
       start_period: 10s
 
-
   pgadmin:
-    container_name: "yus_auto_pgadmin"
+    container_name: "yusauto_pgadmin"
+    networks:
+      - yusauto_backend_network
     image: dpage/pgadmin4
     env_file:
       - ./.env
@@ -33,8 +36,29 @@ services:
       postgres:
         condition: service_healthy
 
+  minio:
+    container_name: "yusauto_minio"
+    networks:
+      - yusauto_backend_network
+    image: docker.io/bitnami/minio
+    env_file:
+      - ./.env
+    volumes:
+      - minio_data:/bitnami/minio/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: [ "CMD", "mc", "ready", "local" ]
+      start_period: 10s
+      interval: 3s
+      timeout: 4s
+      retries: 10
+
   api:
-    container_name: "yus_auto_api"
+    container_name: "yusauto_api"
+    networks:
+      - yusauto_backend_network
     build:
       context: ./backend
     env_file:
@@ -44,6 +68,8 @@ services:
     command: poetry run fastapi dev main.py --host 0.0.0.0 --port 8000
     depends_on:
       postgres:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     volumes:
       - ./backend/app:/app/app
@@ -61,3 +87,9 @@ volumes:
     driver: local
   pgadmin_data:
     driver: local
+  minio_data:
+    driver: local
+
+networks:
+  yusauto_backend_network:
+

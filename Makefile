@@ -22,7 +22,7 @@ stop:
 rm-containers: stop
 	docker rm $(CONTAINERS)
 
-full-clean: rm-containers
+full-clean-docker: rm-containers
 	docker image prune -af
 	docker system prune -af
 	docker volume prune -af
